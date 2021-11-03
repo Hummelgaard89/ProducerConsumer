@@ -15,11 +15,11 @@ namespace ProducerConsumer
             
             Thread China = new Thread(secrets.China);
             China.Start();
-            //China.Join();
+            
 
             Thread USA = new Thread(secrets.USA);
             USA.Start();
-            //USA.Join();
+            
             Console.ReadLine();
 
         }

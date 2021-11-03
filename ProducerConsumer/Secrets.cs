@@ -14,12 +14,16 @@ namespace ProducerConsumer
         int secretnumber = 0;
 
 
+        //China is the Consumer. Whenever USA makes a new secret and enqueues it, this method will write it to console with peek, and then dequeue it to clear up the queue.
+        //This is in a for loop that runs the amount of counts in the queue. When it has cleared the queue, the thread will sleep for a random amount of time.
+        //Furthermore, if the queue is empty, it will say so, and then await new numbers in the queue.
         public void China()
         {
             do
             {
                 try
                 {
+                    Monitor.Enter(StateSecrets);
                     lock (StateSecrets)
                     {
                         if (StateSecrets.Count == 0)
@@ -37,40 +41,33 @@ namespace ProducerConsumer
                                 Console.WriteLine();
                             }
                         }
-                        //while (StateSecrets.Count == 0)
-                        //{
-                        //    Monitor.Wait(StateSecrets);
-                        //    Console.WriteLine("China awaits new state secrets from USA.");
-                        //}
-                        //for (int i = 0; i < StateSecrets.Count; i++)
-                        //{
-                        //    Console.WriteLine("China's spy just got a new state secret from USA." + StateSecrets.Peek());
-                        //    StateSecrets.Dequeue();
-                        //}
-
                         Monitor.PulseAll(StateSecrets);
                     }
 
                 }
                 finally
                 {
+                    Monitor.Exit(StateSecrets);
                     Thread.Sleep(random.Next(1000, 5000));
                 }
             } while (true);
         }
 
+        //USA is the producer, if the queue is not empty, it will say so.
+        //If the queue is empty, it will create 1-5 random numbers and enqueue it, when the numbers have been created, it will pulseall and release the thread.
         public void USA()
         {
             do
             {
                 try
                 {
+                    Monitor.Enter(StateSecrets);
                     lock (StateSecrets)
                     {
                         while (StateSecrets.Count != 0)
                         {
                             Monitor.Wait(StateSecrets);
-                            Console.WriteLine("USA has no new exiting secret nubers at the moment.");
+                            Console.WriteLine("USA has no more new exiting secret nubers at the moment.");
                             Console.WriteLine();
                         }
                         for (int i = 0; i < random.Next(1, 5); i++)
@@ -86,6 +83,7 @@ namespace ProducerConsumer
                 }
                 finally
                 {
+                    Monitor.Exit(StateSecrets);
                     Thread.Sleep(random.Next(1000, 5000));
 
                 }
